@@ -157,7 +157,7 @@ while True:
         st.subheader("Agent Reasoning Box")
         if agent_logs:
             log_text = ""
-            for log in agent_logs[-5:]: # Show last 5 logs
+            for log in agent_logs[-3:]: # Show last 5 logs
                 log_text += f"**[{log.get('agent', 'System')}]** 🤔 {log.get('message', '')}\n\n"
             st.info(log_text)
         else:

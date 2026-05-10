@@ -5,7 +5,7 @@ FROM mcr.microsoft.com/devcontainers/python:3.11
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -yq && apt-get install -yq --no-install-recommends \
-    libgl1-mesa-glx \
+    libgl1-mesa-dev \
     libglib2.0-0 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*

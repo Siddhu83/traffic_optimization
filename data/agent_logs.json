@@ -1,0 +1,14 @@
+[
+    {
+        "agent": "Vision Specialist",
+        "message": "Detected traffic load - N:5, S:24, E:5, W:20"
+    },
+    {
+        "agent": "Architect",
+        "message": "Analyzing intersection state. Emergency status: False"
+    },
+    {
+        "agent": "Signal Optimizer",
+        "message": "Prioritizing direction E. Changing lights."
+    }
+]

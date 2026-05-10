@@ -7,7 +7,9 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 
-OUTPUT_FILE = "traffic_state.json"
+# Create absolute path to data folder from this script's location
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+OUTPUT_FILE = os.path.join(PROJECT_ROOT, "data", "traffic_state.json")
 TARGET_CLASSES = {"car", "bus", "truck"}
 PRIORITY_CLASSES = {"bus", "truck"}
 
@@ -108,9 +110,9 @@ def annotate_polygons(frame, lanes, emergency_lane):
 
 
 def save_state(state, output_path=OUTPUT_FILE):
-    """Append the current lane/emergency state to the output file."""
-    with open(output_path, "a", encoding="utf-8") as fp:
-        fp.write(json.dumps(state) + "\n")
+    """Overwrite the current lane/emergency state to the output file."""
+    with open(output_path, "w", encoding="utf-8") as fp:
+        json.dump(state, fp, indent=4)
 
 
 def main(video_source):
@@ -204,12 +206,9 @@ def main(video_source):
                 )
 
         if frame_count % output_interval == 0:
-            timestamp = datetime.utcnow().isoformat() + "Z"
-            state = {
-                "lanes": counts,
-                "emergency": emergency_detected,
-                "timestamp": timestamp,
-            }
+            # Flatten the state object to match the Crew's expected input
+            state = counts.copy()
+            state["emergency"] = emergency_detected
             print(json.dumps(state))
             save_state(state)
 

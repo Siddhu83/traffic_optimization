@@ -90,9 +90,15 @@ def main():
     
     if traffic_state:
         # Emergency Alert
-        if traffic_state.get("emergency"):
+        is_emergency = traffic_state.get("emergency")
+        if is_emergency:
             st.error("🚨 EMERGENCY VEHICLE DETECTED - PRIORITY OVERRIDE ACTIVE")
-            st.snow()
+            # Only trigger snow once per emergency event to prevent layout shrinking/glitches
+            if not st.session_state.get("emergency_triggered", False):
+                st.snow()
+                st.session_state.emergency_triggered = True
+        else:
+            st.session_state.emergency_triggered = False
             
         # Top Row (KPIs)
         kpi1, kpi2, kpi3, kpi4 = st.columns(4)

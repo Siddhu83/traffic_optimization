@@ -1,9 +1,7 @@
 import os
 import json
-from crewai import Agent, Crew, Process, Task
+from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew, task
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_groq import ChatGroq
 
 # Import the traffic optimization logic
 from logic.optimizer import optimize, get_optimizer, TrafficOptimizer
@@ -18,15 +16,15 @@ class TrafficCrew():
 
     def __init__(self):
         # Gemini 2.5 Flash for high context and reasoning (Traffic Data Scientist)
-        self.gemini_llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+        self.gemini_llm = LLM(
+            model="gemini/gemini-2.5-flash",
             api_key=os.environ.get("GEMINI_API_KEY")
         )
         
         # Groq (Llama 3) for high speed real-time strategy (Senior Traffic Engineer)
-        self.groq_llm = ChatGroq(
-            model="llama-3.3-70b-versatile", # You can adjust this to the exact Llama 3 model string supported by Groq
-            groq_api_key=os.environ.get("GROQ_API_KEY")
+        self.groq_llm = LLM(
+            model="groq/llama-3.3-70b-versatile",
+            api_key=os.environ.get("GROQ_API_KEY")
         )
 
         # Initialize traffic optimizer

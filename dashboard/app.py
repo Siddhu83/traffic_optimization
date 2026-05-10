@@ -4,6 +4,18 @@ import time
 import pandas as pd
 import plotly.graph_objects as go
 import os
+import subprocess
+import sys
+import time
+
+def launch_background_tasks():
+    if "tasks_started" not in st.session_state:
+        subprocess.Popen([sys.executable, "src/vision/traffic_vision.py"])
+        subprocess.Popen([sys.executable, "src/main.py"])
+        st.session_state["tasks_started"] = True
+        st.toast("Vision and Logic Engines Started!", icon="🚀")
+
+launch_background_tasks()
 
 st.set_page_config(page_title="AI-Junction Dashboard", layout="wide")
 

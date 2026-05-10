@@ -155,6 +155,7 @@ def main(video_source):
 
         counts = {"N": 0, "S": 0, "E": 0, "W": 0}
         emergency_detected = False
+        detected_emergency_lane = None
 
         results = model(frame)[0]
         for box, cls_idx, score in zip(results.boxes.xyxy, results.boxes.cls, results.boxes.conf):
@@ -174,8 +175,16 @@ def main(video_source):
 
             priority_vehicle = class_name in PRIORITY_CLASSES
             emergency_lane_hit = is_inside(bottom_center, emergency_lane)
-            if priority_vehicle or emergency_lane_hit:
+            
+            # If priority vehicle is in a specific lane, mark that as the emergency lane
+            if priority_vehicle and assigned_lane:
                 emergency_detected = True
+                detected_emergency_lane = assigned_lane
+            # Or if it's in the dedicated emergency ROI
+            elif priority_vehicle or emergency_lane_hit:
+                emergency_detected = True
+                if not detected_emergency_lane:
+                    detected_emergency_lane = "N"  # Fallback required by Logic module
 
             label = f"{class_name} {score:.2f}"
             if priority_vehicle:
@@ -209,6 +218,8 @@ def main(video_source):
             # Flatten the state object to match the Crew's expected input
             state = counts.copy()
             state["emergency"] = emergency_detected
+            if emergency_detected and detected_emergency_lane:
+                state["emergency_lane"] = detected_emergency_lane
             print(json.dumps(state))
             save_state(state)
 

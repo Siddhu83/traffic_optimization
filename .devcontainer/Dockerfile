@@ -1,17 +1,16 @@
-# Use a Python image that already has common tools installed
+# Use a more stable base
 FROM mcr.microsoft.com/devcontainers/python:3.11
 
-# Install system dependencies for OpenCV (The Vision "Eyes")
-# These are required to process images and video feeds
-RUN apt-get update && apt-get install -y \
+# Fix: Set frontend to noninteractive and combine commands
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -yq && apt-get install -yq --no-install-recommends \
     libgl1-mesa-glx \
     libglib2.0-0 \
-    && rm -rf /var/lib/apt-get/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Pre-install the core libraries so the team doesn't wait
-# ultralytics = YOLO Vision
-# crewai = Agent Orchestration
-# fastapi = For the Dashboard backend
+# The rest of your pip installs...
 RUN pip install --no-cache-dir \
     ultralytics \
     crewai \

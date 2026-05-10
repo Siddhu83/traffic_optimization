@@ -51,7 +51,7 @@ def create_intersection_fig(signal_commands):
         x=[s["x"] for s in signals],
         y=[s["y"] for s in signals],
         mode="markers+text",
-        marker=dict(size=24, color=[s["color"] for s in signals], line=dict(width=2, color="white")),
+        marker=dict(size=24, color=[s["color"] for s in signals], line=dict(user_container_width=2, color="white")),
         text=[s["dir"] for s in signals],
         textposition="top center",
         textfont=dict(color="white", size=16, family="Arial Black")
@@ -127,14 +127,14 @@ def main():
     with col1:
         st.subheader("📷 Live Vision Feed")
         if os.path.exists(VISION_OUTPUT_FILE):
-            st.image(VISION_OUTPUT_FILE, width=True)
+            st.image(VISION_OUTPUT_FILE, user_container_width=True)
         else:
             st.info("Vision feed unavailable.")
             
     with col2:
         st.subheader("🚥 Digital Twin (Signal State)")
         fig_intersection = create_intersection_fig(signal_commands)
-        st.plotly_chart(fig_intersection, width=True)
+        st.plotly_chart(fig_intersection, user_container_width=True)
         
     # Bottom Row
     col3, col4 = st.columns(2)
@@ -145,7 +145,7 @@ def main():
             fig_line = px.line(st.session_state.history, x='Time', y=['N', 'S', 'E', 'W'], 
                                labels={'value': 'Vehicle Count', 'variable': 'Direction'},
                                template="plotly_dark")
-            st.plotly_chart(fig_line, width=True)
+            st.plotly_chart(fig_line, user_container_width=True)
             
     with col4:
         st.subheader("🧠 Agent Reasoning Logs")

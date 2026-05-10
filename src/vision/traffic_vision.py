@@ -222,6 +222,10 @@ def main(video_source):
                 state["emergency_lane"] = detected_emergency_lane
             print(json.dumps(state))
             save_state(state)
+            
+            # Save the annotated frame for the dashboard
+            output_img_path = os.path.join(PROJECT_ROOT, "data", "vision_output.jpg")
+            cv2.imwrite(output_img_path, detection_frame)
 
         cv2.imshow("Traffic Vision", detection_frame)
         if cv2.waitKey(1) == 27:

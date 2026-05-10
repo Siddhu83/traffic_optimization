@@ -22,33 +22,53 @@ def main():
     
     traffic_state_file = data_dir / "traffic_state.json"
     
+    last_mtime = 0
     while True:
         try:
             if traffic_state_file.exists():
-                print(f"[{time.strftime('%X')}] 📈 Found traffic_state.json. Triggering TrafficCrew...")
-                
-                # Load the input data from the Vision module
-                try:
-                    with open(traffic_state_file, "r") as f:
-                        inputs = json.load(f)
-                except json.JSONDecodeError:
-                    print(f"[{time.strftime('%X')}] ⚠️  Error reading JSON. Waiting for Vision to finish writing...")
-                    time.sleep(2)
-                    continue
+                mtime = traffic_state_file.stat().st_mtime
+                if mtime > last_mtime:
+                    print(f"[{time.strftime('%X')}] 📈 Found new traffic_state.json. Triggering TrafficCrew...")
+                    
+                    # Load the input data from the Vision module
+                    try:
+                        with open(traffic_state_file, "r") as f:
+                            inputs = json.load(f)
+                    except json.JSONDecodeError:
+                        print(f"[{time.strftime('%X')}] ⚠️  Error reading JSON. Waiting for Vision to finish writing...")
+                        time.sleep(2)
+                        continue
 
-                print(f"Inputs: {inputs}")
-                
-                # We inject the data read from JSON into the task description via inputs
-                crew = TrafficCrew().crew()
-                result = crew.kickoff(inputs={"traffic_data": json.dumps(inputs)})
-                
-                print(f"[{time.strftime('%X')}] ✅ Crew finished.")
-                print(f"Result saved to data/signal_commands.json: {result.raw}")
-                
-                # We rename or delete the file so we don't process it endlessly
-                # Remove it so the system waits for the Vision module to create the next snapshot
-                traffic_state_file.unlink()
-                print(f"[{time.strftime('%X')}] 🗑️  Cleaned up traffic_state.json. Waiting for next snapshot...")
+                    last_mtime = mtime
+                    print(f"Inputs: {inputs}")
+                    
+                    # We inject the data read from JSON into the task description via inputs
+                    crew = TrafficCrew().crew()
+                    result = crew.kickoff(inputs={"traffic_data": json.dumps(inputs)})
+                    
+                    print(f"[{time.strftime('%X')}] ✅ Crew finished.")
+                    print(f"Result saved to data/signal_commands.json: {result.raw}")
+                    
+                    # Write agent logs to data/agent_logs.json
+                    try:
+                        log_file = data_dir / "agent_logs.json"
+                        reasoning = "Optimization complete based on current traffic."
+                        try:
+                            # Try to parse if it's JSON to get reasoning
+                            res_json = json.loads(result.raw)
+                            reasoning = res_json.get("reason", reasoning)
+                        except:
+                            pass
+                        logs = [
+                            {"agent": "Traffic Analyzer", "message": f"Analyzed traffic inputs: {inputs}"},
+                            {"agent": "Signal Strategist", "message": f"Decision: {reasoning}"}
+                        ]
+                        with open(log_file, "w") as f:
+                            json.dump(logs, f, indent=4)
+                    except Exception as log_e:
+                        print(f"[{time.strftime('%X')}] ⚠️  Error writing agent logs: {log_e}")
+                else:
+                    pass # Waiting for new data
             else:
                 pass # Silent heartbeat, waiting for data
                 

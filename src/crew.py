@@ -16,7 +16,7 @@ class TrafficCrew():
         # Gemini 2.5 Flash for high context and reasoning (Traffic Data Scientist)
         self.gemini_llm = ChatGoogleGenerativeAI(
             model="gemini-2.5-flash",
-            gemini_api_key=os.environ.get("GEMINIAPI_KEY")
+            api_key=os.environ.get("GEMINI_API_KEY")
         )
         
         # Groq (Llama 3) for high speed real-time strategy (Senior Traffic Engineer)

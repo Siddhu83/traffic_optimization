@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir \
     ultralytics \
     crewai \
     langchain-google-genai \
+    langchain-groq \
     fastapi \
     uvicorn \
     python-dotenv

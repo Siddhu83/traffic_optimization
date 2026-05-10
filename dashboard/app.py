@@ -9,12 +9,6 @@ st.set_page_config(page_title="AI-Junction Dashboard", layout="wide")
 
 # Sidebar
 st.sidebar.title("AI Based Junction Optimization System")
-st.sidebar.header("Team Members")
-st.sidebar.write("- Architect Specialist")
-st.sidebar.write("- Vision Specialist")
-st.sidebar.write("- Logic Engineer")
-st.sidebar.write("- Dashboard Developer")
-
 st.sidebar.header("Project Overview")
 st.sidebar.info("A live AI-powered junction system that optimizes traffic signals and detects emergency vehicles in real-time. By dynamically adjusting to traffic loads, we reduce wait times and carbon emissions.")
 

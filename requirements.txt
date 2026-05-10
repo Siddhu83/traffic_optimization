@@ -3,3 +3,8 @@ langchain-google-genai
 langchain-groq
 pydantic
 python-dotenv
+streamlit
+pandas
+plotly
+streamlit-echarts
+pillow

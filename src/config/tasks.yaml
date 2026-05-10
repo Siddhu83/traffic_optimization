@@ -12,7 +12,8 @@ analyze_traffic_task:
 
 optimize_signals_task:
   description: >
-    Based on analysis from the traffic analyzer, output a JSON command to control the traffic lights.
+    Based on analysis from the traffic analyzer and this raw traffic data: {traffic_data}
+    Use your optimize_signal_timing tool to calculate the optimal green-light timings.
     Format your response strictly as a valid JSON object matching this exact schema:
     {{"lane": "str", "seconds": "int", "priority": "bool"}}
     

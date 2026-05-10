@@ -32,12 +32,12 @@ class TrafficCrew():
         # Initialize traffic optimizer
         self.optimizer = get_optimizer()
 
-    def optimize_signal_timing(self, traffic_data: dict) -> dict:
+    def optimize_signal_timing(self, traffic_data) -> dict:
         """
         Tool: Optimize signal timing based on current traffic state.
         
         Args:
-            traffic_data: Dictionary with N, S, E, W vehicle counts and emergency flag
+            traffic_data: Dictionary or JSON string with N, S, E, W vehicle counts and emergency flag
                 Example: {'N': 10, 'S': 5, 'E': 8, 'W': 12, 'emergency': False}
         
         Returns:
@@ -47,6 +47,12 @@ class TrafficCrew():
             - priority: Boolean for emergency priority mode
             - reason: Explanation of the decision
         """
+        if isinstance(traffic_data, str):
+            try:
+                import json
+                traffic_data = json.loads(traffic_data.replace("'", '"'))
+            except Exception:
+                pass
         return optimize(traffic_data)
     
     def get_optimizer_stats(self) -> dict:

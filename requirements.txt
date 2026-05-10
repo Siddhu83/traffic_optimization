@@ -1,0 +1,5 @@
+crewai
+langchain-google-genai
+langchain-groq
+pydantic
+python-dotenv

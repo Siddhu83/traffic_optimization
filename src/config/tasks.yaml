@@ -1,0 +1,26 @@
+analyze_traffic_task:
+  description: >
+    Read traffic counts from data/traffic_state.json and identify the most congested lane.
+    
+    Here is the current traffic state data read from the JSON file:
+    {traffic_data}
+    
+    Identify the most congested lane and check if there is an emergency vehicle present.
+  expected_output: >
+    A clear assessment of the current traffic situation identifying the most congested lane and emergency status.
+  agent: traffic_analyzer
+
+optimize_signals_task:
+  description: >
+    Based on analysis from the traffic analyzer, output a JSON command to control the traffic lights.
+    Format your response strictly as a valid JSON object matching this exact schema:
+    {{"lane": "str", "seconds": "int", "priority": "bool"}}
+    
+    - 'lane': The direction that should get the green light (N, S, E, or W).
+    - 'seconds': The duration of the green light (integer).
+    - 'priority': Boolean true if an emergency vehicle is present, false otherwise.
+    
+    Return ONLY the JSON string.
+  expected_output: >
+    A valid JSON string strictly conforming to the required schema: {{"lane": "N|S|E|W", "seconds": <int>, "priority": <bool>}}. Do NOT wrap in markdown code blocks.
+  agent: signal_strategist

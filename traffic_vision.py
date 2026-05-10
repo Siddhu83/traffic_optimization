@@ -7,27 +7,34 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 
+OUTPUT_FILE = "traffic_state.json"
+TARGET_CLASSES = {"car", "bus", "truck"}
+PRIORITY_CLASSES = {"bus", "truck"}
+
 
 def is_inside(point, polygon):
-    """Return True if the point is inside the polygon using ray casting."""
+    """Return True if the point lies inside the polygon using ray casting."""
     x, y = point
     inside = False
 
     for i in range(len(polygon)):
         x1, y1 = polygon[i]
         x2, y2 = polygon[(i + 1) % len(polygon)]
-
-        intersect = ((y1 > y) != (y2 > y)) and (
+        intersects = ((y1 > y) != (y2 > y)) and (
             x < (x2 - x1) * (y - y1) / (y2 - y1 + 1e-9) + x1
         )
-        if intersect:
+        if intersects:
             inside = not inside
 
     return inside
 
 
 def build_lane_polygons(frame_width, frame_height):
-    """Define the 4 lane polygon ROIs using normalized coordinates."""
+    """Define the 4 lane polygon ROIs using normalized coordinates.
+
+    Coordinates are defined relative to the frame size so the same logic works for
+    different camera resolutions. Each polygon approximates a junction approach.
+    """
     w, h = frame_width, frame_height
     return {
         "N": [
@@ -58,7 +65,10 @@ def build_lane_polygons(frame_width, frame_height):
 
 
 def build_emergency_lane(frame_width, frame_height):
-    """Define a dedicated emergency lane polygon."""
+    """Define a dedicated emergency lane ROI.
+
+    This special region acts as a proxy for ambulances or priority vehicles.
+    """
     w, h = frame_width, frame_height
     return [
         (int(0.75 * w), int(0.1 * h)),
@@ -69,6 +79,7 @@ def build_emergency_lane(frame_width, frame_height):
 
 
 def annotate_polygons(frame, lanes, emergency_lane):
+    """Draw lane and emergency polygons on the video feed."""
     for lane_id, polygon in lanes.items():
         cv2.polylines(frame, [np.array(polygon, dtype=np.int32)], True, (0, 255, 0), 2)
         centroid = np.mean(np.array(polygon), axis=0).astype(int)
@@ -83,22 +94,27 @@ def annotate_polygons(frame, lanes, emergency_lane):
             cv2.LINE_AA,
         )
 
-    cv2.polylines(frame, [np.array(emergency_lane, dtype=np.int32)], True, (0, 165, 255), 2)
+    cv2.polylines(frame, [np.array(emergency_lane, dtype=np.int32)], True, (0, 255, 0), 2)
     cv2.putText(
         frame,
         "Emergency Lane",
         (emergency_lane[0][0], emergency_lane[0][1] - 10),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.6,
-        (0, 165, 255),
+        (0, 255, 0),
         2,
         cv2.LINE_AA,
     )
 
 
+def save_state(state, output_path=OUTPUT_FILE):
+    """Append the current lane/emergency state to the output file."""
+    with open(output_path, "a", encoding="utf-8") as fp:
+        fp.write(json.dumps(state) + "\n")
+
+
 def main(video_source):
     model = YOLO("yolov8n.pt")
-    target_classes = {"car", "bus", "truck"}
 
     cap = cv2.VideoCapture(video_source)
     if not cap.isOpened():
@@ -109,7 +125,10 @@ def main(video_source):
     lanes = build_lane_polygons(frame_width, frame_height)
     emergency_lane = build_emergency_lane(frame_width, frame_height)
 
-    os.makedirs(os.path.dirname("traffic_state.json") or ".", exist_ok=True)
+    output_dir = os.path.dirname(OUTPUT_FILE)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+
     frame_count = 0
     output_interval = 30
     skip_every = 2
@@ -138,7 +157,7 @@ def main(video_source):
         results = model(frame)[0]
         for box, cls_idx, score in zip(results.boxes.xyxy, results.boxes.cls, results.boxes.conf):
             class_name = model.names[int(cls_idx)]
-            if class_name not in target_classes:
+            if class_name not in TARGET_CLASSES:
                 continue
 
             x1, y1, x2, y2 = map(int, box.tolist())
@@ -151,7 +170,7 @@ def main(video_source):
                     assigned_lane = lane_id
                     break
 
-            priority_vehicle = class_name in {"bus", "truck"}
+            priority_vehicle = class_name in PRIORITY_CLASSES
             emergency_lane_hit = is_inside(bottom_center, emergency_lane)
             if priority_vehicle or emergency_lane_hit:
                 emergency_detected = True
@@ -191,10 +210,8 @@ def main(video_source):
                 "emergency": emergency_detected,
                 "timestamp": timestamp,
             }
-            output = json.dumps(state)
-            print(output)
-            with open("traffic_state.json", "a", encoding="utf-8") as fp:
-                fp.write(output + "\n")
+            print(json.dumps(state))
+            save_state(state)
 
         cv2.imshow("Traffic Vision", detection_frame)
         if cv2.waitKey(1) == 27:

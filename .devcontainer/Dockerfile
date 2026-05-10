@@ -18,4 +18,7 @@ RUN pip install --no-cache-dir \
     langchain-groq \
     fastapi \
     uvicorn \
-    python-dotenv
+    python-dotenv \
+    streamlit \
+    pandas \
+    plotly

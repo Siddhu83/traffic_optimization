@@ -17,8 +17,7 @@ def main():
     print("Kicking off crew with dummy data...")
     print(dummy_data)
     
-    crew = TrafficCrew().crew()
-    result = crew.kickoff(inputs={"traffic_data": json.dumps(dummy_data)})
+    result = TrafficCrew().kickoff(inputs={"traffic_data": json.dumps(dummy_data)})
     
     print("\n\n==== DONE ====")
     print("Result JSON:", result.raw)

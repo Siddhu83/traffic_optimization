@@ -1,36 +1,24 @@
-import os
 import json
-from crewai import Agent, Crew, Process, Task
-from crewai.project import CrewBase, agent, crew, task
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_groq import ChatGroq
+from pathlib import Path
+import yaml
 
 # Import the traffic optimization logic
 from logic.optimizer import optimize, get_optimizer, TrafficOptimizer
 
-@CrewBase
-class TrafficCrew():
-    """Traffic Optimization Crew"""
 
-    # These paths are relative to the directory where this script resides (src/)
-    agents_config = 'config/agents.yaml'
-    tasks_config = 'config/tasks.yaml'
+class TrafficCrew():
+    """Traffic Optimization Crew - Simplified for reliability"""
 
     def __init__(self):
-        # Gemini 2.5 Flash for high context and reasoning (Traffic Data Scientist)
-        self.gemini_llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
-            api_key=os.environ.get("GEMINI_API_KEY")
-        )
-        
-        # Groq (Llama 3) for high speed real-time strategy (Senior Traffic Engineer)
-        self.groq_llm = ChatGroq(
-            model="llama-3.3-70b-versatile", # You can adjust this to the exact Llama 3 model string supported by Groq
-            groq_api_key=os.environ.get("GROQ_API_KEY")
-        )
-
         # Initialize traffic optimizer
         self.optimizer = get_optimizer()
+        
+        # Load config files
+        config_dir = Path(__file__).parent / "config"
+        with open(config_dir / "agents.yaml", "r") as f:
+            self.agents_config = yaml.safe_load(f)
+        with open(config_dir / "tasks.yaml", "r") as f:
+            self.tasks_config = yaml.safe_load(f)
 
     def optimize_signal_timing(self, traffic_data) -> dict:
         """
@@ -49,7 +37,6 @@ class TrafficCrew():
         """
         if isinstance(traffic_data, str):
             try:
-                import json
                 traffic_data = json.loads(traffic_data.replace("'", '"'))
             except Exception:
                 pass
@@ -78,42 +65,50 @@ class TrafficCrew():
         self.optimizer.reset_stats()
         return {"status": "success", "message": "Optimizer statistics reset"}
 
-    @agent
-    def traffic_analyzer(self) -> Agent:
-        return Agent(
-            config=self.agents_config['traffic_analyzer'],
-            llm=self.gemini_llm,
-            verbose=True
-        )
+    def crew(self):
+        """
+        Backwards-compatible adapter for older scripts that used CrewAI's
+        generated .crew().kickoff(...) entrypoint.
+        """
+        return self
 
-    @agent
-    def signal_strategist(self) -> Agent:
-        return Agent(
-            config=self.agents_config['signal_strategist'],
-            llm=self.groq_llm,
-            verbose=True,
-            tools=[self.optimize_signal_timing]  # Register optimizer as tool
-        )
-
-    @task
-    def analyze_traffic_task(self) -> Task:
-        return Task(
-            config=self.tasks_config['analyze_traffic_task']
-        )
-
-    @task
-    def optimize_signals_task(self) -> Task:
-        return Task(
-            config=self.tasks_config['optimize_signals_task'],
-            output_file='data/signal_commands.json'
-        )
-
-    @crew
-    def crew(self) -> Crew:
-        """Creates the TrafficCrew"""
-        return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
-            process=Process.sequential,
-            verbose=True,
-        )
+    def kickoff(self, inputs=None):
+        """
+        Simplified kickoff that uses the optimizer directly instead of CrewAI agents.
+        This ensures reliable execution without LLM dependency issues.
+        """
+        try:
+            traffic_data = inputs.get("traffic_data") if inputs else {}
+            
+            if isinstance(traffic_data, str):
+                traffic_data = json.loads(traffic_data)
+            
+            # Analyze: Identify most congested lane
+            print(f"[Traffic Analyzer] Analyzing traffic: {traffic_data}")
+            
+            # Optimize: Generate signal command
+            signal_command = self.optimize_signal_timing(traffic_data)
+            print(f"[Signal Strategist] Optimized command: {signal_command}")
+            
+            if not signal_command.get("reason"):
+                signal_command["reason"] = (
+                    f"Adaptive optimization for lanes N={traffic_data.get('N', 0)}, "
+                    f"S={traffic_data.get('S', 0)}, E={traffic_data.get('E', 0)}, "
+                    f"W={traffic_data.get('W', 0)}"
+                )
+            
+            # Save result
+            output_file = Path(__file__).parent.parent / "data" / "signal_commands.json"
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(output_file, "w") as f:
+                json.dump(signal_command, f, indent=2)
+            
+            class Result:
+                def __init__(self, data):
+                    self.raw = json.dumps(data)
+            
+            return Result(signal_command)
+            
+        except Exception as e:
+            print(f"[Crew Error] {e}")
+            raise

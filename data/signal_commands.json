@@ -1,0 +1,6 @@
+{
+  "lane": "N",
+  "seconds": 35,
+  "priority": false,
+  "reason": "Lane N has highest density (10 vehicles)"
+}

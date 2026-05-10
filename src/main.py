@@ -38,9 +38,9 @@ def main():
 
                 print(f"Inputs: {inputs}")
                 
-                # We inject the data read from JSON into the task description via inputs
-                crew = TrafficCrew().crew()
-                result = crew.kickoff(inputs={"traffic_data": json.dumps(inputs)})
+                # Create traffic crew and execute optimization
+                traffic_crew = TrafficCrew()
+                result = traffic_crew.kickoff(inputs={"traffic_data": json.dumps(inputs)})
                 
                 print(f"[{time.strftime('%X')}] ✅ Crew finished.")
                 print(f"Result saved to data/signal_commands.json: {result.raw}")

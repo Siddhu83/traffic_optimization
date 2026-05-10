@@ -12,7 +12,7 @@ def launch_background_tasks():
     if "tasks_started" not in st.session_state:
         subprocess.Popen([sys.executable, "src/vision/traffic_vision.py"])
         subprocess.Popen([sys.executable, "src/main.py"])
-        subprocess.Popen([sys.executable, "/mock_data_generator.py"])
+        subprocess.Popen([sys.executable, "mock_data_generator.py"])
         st.session_state["tasks_started"] = True
         st.toast("Vision and Logic Engines Started!", icon="🚀")
 

@@ -1,0 +1,8 @@
+2026-05-11 14:41:18,854 - logic.optimizer - INFO - 🚦 Traffic Optimizer initialized
+🚦 Starting Junction Optimization System heartbeat...
+[14:41:17] 📈 Found new traffic_state.json. Triggering TrafficCrew...
+Inputs: {'N': 10, 'S': 10, 'E': 10, 'W': 10, 'emergency': False}
+[14:41:18] ❌ Error in heartbeat loop: 1 validation error for Agent
+tools.0
+  Input should be a valid dictionary or instance of BaseTool [type=model_type, input_value=<bound method TrafficCrew...ject at 0x7f617bcb3500>>, input_type=method]
+    For further information visit https://errors.pydantic.dev/2.12/v/model_type
